@@ -54,6 +54,7 @@ int main()
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
     // connect to server
+    printf("ADDR: %d", result->ai_addr);
     iResult = connect(s, result->ai_addr, (int)result->ai_addrlen);
     if(iResult = SOCKET_ERROR) {
         printf("Connect failed\n");
