@@ -23,9 +23,9 @@ int main(){
     }
 
     // Resolve address information for socket.
-    // A "hint" is created with our knows parameters. It is passed to getaddrinfo
-    // along with an emptry addrinfo, where the kernel defined parameters get filled in.
-    struct addrinfo *result = NULL, *ptr = NULL, hints;
+    // A "hint" is created with our known parameters. It is passed to getaddrinfo
+    // along with an emptry addrinfo, where the kernel allocated parameters get filled in.
+    struct addrinfo *result = NULL, hints;
 
     ZeroMemory(&hints, sizeof(hints));
     hints.ai_family = AF_INET; // ipv4
