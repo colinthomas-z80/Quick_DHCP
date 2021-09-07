@@ -12,6 +12,8 @@ int main(){
 
     int iResult;
 
+    /////////////////////////////////////////////////////////////////////////////////////
+
     // Initialize Winsock
     iResult = WSAStartup(MAKEWORD(2,2), &wsa);
     if(iResult != 0)
@@ -34,7 +36,9 @@ int main(){
     // getaddrinfo(string host addr, string port, hint, return)
     // when the node name is set to NULL, and the hints.ai_flags is AI_PASSIVE, the 
     // ip address of the returned structure is set to INADDR_ANY
-    iResult = getaddrinfo(NULL, DHCP_PORT, &hints, &result);
+    // 
+    // our node is localhost for testing purposes
+    iResult = getaddrinfo("localhost", DHCP_PORT, &hints, &result);
     if(iResult != 0)
     {
         printf("getaddrinfo failed: %d\n", iResult);
@@ -54,6 +58,7 @@ int main(){
     }
 
     // connect the acquired address to the created socket
+    // in either condition, free addr info, since our socket is created.
     iResult = bind(s, result->ai_addr, (int)result->ai_addrlen);
     if(iResult == SOCKET_ERROR)
     {
@@ -64,4 +69,30 @@ int main(){
         return 1;
     }
     freeaddrinfo(result); 
+
+    ////////////////////////////////////////////////////////////////////////////////////
+
+    // Listen on socket
+    if(listen( s, SOMAXCONN) == SOCKET_ERROR)
+    {
+        printf("Listen failed error : %ld\n", WSAGetLastError());
+        closesocket(s);
+        WSACleanup();
+        return 1;
+    }
+
+    // Accept a client
+    SOCKET Client = INVALID_SOCKET;
+    Client = accept(s, NULL, NULL);
+    if(Client == INVALID_SOCKET)
+    {
+        printf("failed accept %d\n", WSAGetLastError());
+        closesocket(s);
+        WSACleanup();
+        return 1;
+    }
+
+    ///////////////////////////////////////////////////////////////////////////////////////
+
+    printf("done.\n");
 }
