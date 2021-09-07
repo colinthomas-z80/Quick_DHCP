@@ -82,9 +82,10 @@ int main(){
     }
 
     // Accept a client
-    SOCKET Client = INVALID_SOCKET;
-    Client = accept(s, NULL, NULL);
-    if(Client == INVALID_SOCKET)
+    // Accept will wait until a connection is made
+    SOCKET client = INVALID_SOCKET;
+    client = accept(s, NULL, NULL);
+    if(client == INVALID_SOCKET)
     {
         printf("failed accept %d\n", WSAGetLastError());
         closesocket(s);
@@ -93,6 +94,44 @@ int main(){
     }
 
     ///////////////////////////////////////////////////////////////////////////////////////
+
+    // client is connected
+
+    #define DEFAULT_BUFLEN 512
+
+    char recvbuf[DEFAULT_BUFLEN];
+    int iSendResult;
+    
+    do {
+        // this call blocks until data is received
+        iResult = recv(client, recvbuf, DEFAULT_BUFLEN, 0);
+        
+        if(iResult > 0) 
+        {
+            printf("Bytes Received: %d\n", iResult);
+
+            iSendResult = send(client, recvbuf, iResult, 0);
+            if(iSendResult == SOCKET_ERROR) 
+            {
+                printf("send failed: %d\n", WSAGetLastError());
+                closesocket(client);
+                WSACleanup();
+                return 1;
+            }
+            printf("Bytes Sent : %d\n", iSendResult);
+        } 
+        else if (iResult == 0)
+        {
+            printf("Closing Connection....\n");
+        }
+        else 
+        {
+            printf("recv failed: %d\n", WSAGetLastError());
+            closesocket(client);
+            WSACleanup();
+            return 1;
+        }
+    } while(iResult > 0);
 
     printf("done.\n");
 }

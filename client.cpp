@@ -5,3 +5,5 @@
 #include <stdio.h>
 
 #define DHCP_PORT "67"
+
+// Have an example client to simulate a dhcp requesting device
