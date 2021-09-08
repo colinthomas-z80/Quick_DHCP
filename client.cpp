@@ -66,10 +66,11 @@ int main()
     // and we would iterate through the result ptr. to try new addresses
     freeaddrinfo(result);
 
-    int recvbuflen = 512;
+    #define RECVMAX 512
+    int recvbuflen = RECVMAX;
 
     const char *sendbuf = "this is a test";
-    char recvbuf[recvbuflen];
+    char recvbuf[RECVMAX];
 
     iResult = send(s, sendbuf, (int)strlen(sendbuf), 0);
     if(iResult == SOCKET_ERROR)
