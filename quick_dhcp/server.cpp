@@ -1,9 +1,4 @@
-#include <Winsock2.h>
-#include <WS2tcpip.h>
-#include <Windows.h>
-#include <Winsock.h>
-#include <iphlpapi.h>
-#include <stdio.h>
+#include "quick_dhcp.h"
 
 #define DHCP_PORT "67"
 
@@ -73,43 +68,10 @@ int main(){
 
     ////////////////////////////////////////////////////////////////////////////////////
 
-    // Create a UDP Socket for server responses
+    // Create a RAW socket for server responses
 
-    SOCKET udp_s = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    udp_test();
     
-    sockaddr_in my_nic;
-    my_nic.sin_family = AF_INET;
-    my_nic.sin_addr.s_addr = inet_addr("192.168.1.150");
-    my_nic.sin_port = 68;
-
-    int err = bind(udp_s, (SOCKADDR*)&my_nic, sizeof(my_nic));
-    if(err != 0)
-    {
-        printf("bind error : %d\n", err);
-        return -1;
-    }
-
-    if(udp_s == INVALID_SOCKET)
-    {
-        printf("Error creating udp socket : %ld\n", WSAGetLastError());
-        WSACleanup();
-        return -1;
-    }
-    printf("UDP Socket created\n");
-
-    sockaddr_in receiver;
-    receiver.sin_family = AF_INET;
-    receiver.sin_port = htons(68);
-    receiver.sin_addr.s_addr = INADDR_ANY;
-
-    char test_sendbuf[] = "This is udp test";
-    err = sendto(udp_s, test_sendbuf, (int)strlen(test_sendbuf), 0, (SOCKADDR*)&receiver, sizeof(receiver));
-    if(err != 0)
-    {
-        printf("Error sending udp : %d\n", err);
-        return -1;
-    }
-
     ////////////////////////////////////////////////////////////////////////////////////
     // Listen on socket
     if(listen( s, SOMAXCONN) == SOCKET_ERROR)
