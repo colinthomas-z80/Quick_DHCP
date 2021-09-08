@@ -33,8 +33,41 @@ int udp_test(){
     receiver.sin_port = htons(68);
     receiver.sin_addr.s_addr = inet_addr("255.255.255.255");
 
-    char test_sendbuff[] = "This is a udp test";
-    err = sendto(raw_s, test_sendbuff, (int)strlen(test_sendbuff), 0, (SOCKADDR *)&receiver, sizeof(receiver));
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // Create a udp packet
+
+    char test_sendbuff[512];
+
+    typedef struct {
+        UCHAR op;
+        UCHAR htype;
+        UCHAR hlen;
+        UCHAR hops;
+    } dhcp_offer;
+
+    typedef struct {
+        USHORT src_port;
+        USHORT dest_port;
+        USHORT len;
+        USHORT checksum;
+        dhcp_offer offer;
+    } udp_packet;
+
+    dhcp_offer test_offer;
+    test_offer.op = 0x01;
+    test_offer.htype = 0x01;
+    test_offer.hlen = 0x06;
+    test_offer.hops = 0x00;
+
+    udp_packet *test_pkt = (udp_packet*)test_sendbuff;
+    test_pkt->src_port = htons(67);
+    test_pkt->dest_port = htons(68);
+    test_pkt->len = htons(12);
+    test_pkt->checksum = 1234;
+    //strcpy(test_pkt->payload, "Hello, UDP!");
+    test_pkt->offer = test_offer;
+    err = sendto(raw_s, test_sendbuff, sizeof(test_sendbuff), 0, (SOCKADDR *)&receiver, sizeof(receiver));
     if(err != 0)
     {
         printf("UDP Bytes Sent : %d\n", err);
