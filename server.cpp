@@ -39,7 +39,7 @@ int main(){
     // ip address of the returned structure is set to INADDR_ANY
     // 
     // our node is localhost for testing purposes
-    iResult = getaddrinfo("localhost", DHCP_PORT, &hints, &result);
+    iResult = getaddrinfo("127.0.0.1", DHCP_PORT, &hints, &result);
     if(iResult != 0)
     {
         printf("getaddrinfo failed: %d\n", iResult);
@@ -50,6 +50,8 @@ int main(){
     s = INVALID_SOCKET;
     // socket( ipv4, tcp type, tcp protocol)
     s = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    printf("Socket Host Name : %s\n", result->ai_canonname);
+    printf("Socket Address Info Protocol : %d\n", result->ai_protocol);
     if(s == INVALID_SOCKET)
     {
         printf("Error at socket(): %ld\n", WSAGetLastError());
