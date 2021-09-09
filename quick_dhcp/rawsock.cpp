@@ -26,6 +26,7 @@ int udp_test(){
     if(err != 0)
     {
         printf("error setting sockopt : %d\n", err);
+        return -1;
     }
     printf("Sockopt set\n");
 

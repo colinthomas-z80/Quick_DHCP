@@ -65,7 +65,6 @@ int get_client_discover()
     }
 
     s = INVALID_SOCKET;
-    // socket( ipv4, tcp type, tcp protocol)
     s = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if(s == INVALID_SOCKET)
     {
@@ -76,80 +75,46 @@ int get_client_discover()
     }
     printf("TCP Socket Created\n");
 
-    // connect the acquired address to the created socket
-    // in either condition, free addr info, since our socket is created.
+    // bind the socket to our network interface
     iResult = bind(s, result->ai_addr, (int)result->ai_addrlen);
     if(iResult == SOCKET_ERROR)
     {
         printf("Bind failed with error %d\n", WSAGetLastError());
         freeaddrinfo(result);
         closesocket(s);
-        WSACleanup();
         return -1;
     }
     freeaddrinfo(result); 
 
+    // set sock opt to receive broadcast
+    bool optval = TRUE;
+    iResult = setsockopt(s, SOL_SOCKET, SO_BROADCAST, (char*)&optval, sizeof(BOOL));
+    if(iResult != 0)
+    {
+        printf("Error setting sockopt for receive : %d\n", iResult);
+        return -1;
+    }
+
+    // Create the address profile of the client 
+    sockaddr_in client;
+    client.sin_family = AF_INET;
+    client.sin_port = htons(67);
+    client.sin_addr.s_addr = inet_addr("255.255.255.255");
+    
     // Listen on socket
     printf("Waiting for DHCP Discovery.....\n");
-    if(listen( s, SOMAXCONN) == SOCKET_ERROR)
-    {
-        printf("Listen failed error : %ld\n", WSAGetLastError());
-        closesocket(s);
-        WSACleanup();
-        return 1;
-    }
-
-    // Accept a client
-    // Accept will wait until a connection is made
-    SOCKET client = INVALID_SOCKET;
-    client = accept(s, NULL, NULL);
-    if(client == INVALID_SOCKET)
-    {
-        printf("failed accept %d\n", WSAGetLastError());
-        closesocket(s);
-        WSACleanup();
-        return 1;
-    }
-
-    // ///////////////////////////////////////////////////////////////////////////////////////
-
-    // // client is connected
-
-    #define DEFAULT_BUFLEN 512
-
-    char recvbuf[DEFAULT_BUFLEN];
-    int iSendResult;
     
-    do {
-        // this call blocks until data is received
-        iResult = recv(client, recvbuf, DEFAULT_BUFLEN, 0);
-        
-        if(iResult > 0) 
-        {
-            printf("Bytes Received: %d\n", iResult);
-            printf("%s\n", recvbuf);
-            iSendResult = send(client, recvbuf, iResult, 0);
-            if(iSendResult == SOCKET_ERROR) 
-            {
-                printf("send failed: %d\n", WSAGetLastError());
-                closesocket(client);
-                WSACleanup();
-                return 1;
-            }
-            printf("Bytes Sent : %d\n", iSendResult);
-        } 
-        else if (iResult == 0)
-        {
-            printf("Closing Connection....\n");
-        }
-        else 
-        {
-            printf("recv failed: %d\n", WSAGetLastError());
-            closesocket(client);
-            WSACleanup();
-            return 1;
-        }
-    } while(iResult > 0);
+    char buf[512];
+    int clsize = sizeof(client);
+    iResult = recvfrom(s, buf, sizeof(buf), 0, (sockaddr *)&client, &clsize);
+    if(iResult > 0)
+    {
+        printf("Bytes Received : %d\n", iResult);
+        printf("Buf : \n%s\n", buf);
+    }else if( iResult < 0) {
+        printf("Recv Error : %d\n", iResult);
+        return -1;
+    }
 
     printf("done.\n");
     return 0;
