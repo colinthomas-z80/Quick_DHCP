@@ -211,6 +211,9 @@ int client_ack(SOCKET *s_ptr){
     test_pkt->payload.chaddr_third = htons(0x1214);
     test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
 
+    // Instead of this pointer hack, I could use a fixed amount of padding each option. Most dhcp 
+    // clients can handle that.
+
     char *option_ptr = test_pkt->payload.option_ptr;
 
     *option_ptr++ = 53; // dhcp ack

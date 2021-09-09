@@ -1,3 +1,10 @@
+/*************************************
+ *  Quick DHCP server for a single client.
+ * 
+ *  Assigns a single ip address
+ * 
+ **************************************/
+
 #include "quick_dhcp.h"
 
 int init_net(SOCKET *rx, SOCKET *tx);
