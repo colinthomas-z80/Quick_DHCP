@@ -33,7 +33,7 @@ int main()
     hints.ai_protocol = IPPROTO_TCP;
 
     // get the addrinfo of the server we want to connect
-    iResult = getaddrinfo("localhost", "67", &hints, &result);
+    iResult = getaddrinfo("0.0.0.0", "67", &hints, &result);
     if(iResult != 0)
     {
         printf("getaddrinfo failed : %d\n", iResult);

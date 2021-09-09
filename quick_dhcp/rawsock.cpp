@@ -40,24 +40,30 @@ int udp_test(){
     // Create a udp packet
 
     char test_sendbuff[512];
+    ZeroMemory(test_sendbuff, 512);
 
     udp_packet *test_pkt = (udp_packet*)test_sendbuff;
     // udp header
     test_pkt->src_port = htons(67);
     test_pkt->dest_port = htons(68);
-    test_pkt->len = htons(32);
-    test_pkt->checksum = htons(32);
+    test_pkt->len = htons(271);
+    test_pkt->checksum = htons(271);
     // dhcp payload
     test_pkt->payload.op = 0x02;
     test_pkt->payload.htype = 0x01;
     test_pkt->payload.hlen = 0x06;
     test_pkt->payload.hops = 0x00;
-    test_pkt->payload.xid = 0x12345678;
-    test_pkt->payload.segs = 0x0001;
+    test_pkt->payload.xid = htonl(0x7E15DEF3);
+    test_pkt->payload.segs = 0x0000;
     test_pkt->payload.flags = 0x0;
     test_pkt->payload.ciaddr = 0x0;
     test_pkt->payload.yiaddr = inet_addr("192.168.1.150");
-    test_pkt->payload.siaddr = inet_addr("192.168.1.150");
+    test_pkt->payload.siaddr = 0x0;
+    test_pkt->payload.giaddr = 0x0;
+    test_pkt->payload.chaddr_first = htons(0x0011);
+    test_pkt->payload.chaddr_second = htons(0x2704);
+    test_pkt->payload.chaddr_third = htons(0x1214);
+    test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
 
     err = sendto(raw_s, test_sendbuff, sizeof(test_sendbuff), 0, (SOCKADDR *)&receiver, sizeof(receiver));
     if(err != 0)

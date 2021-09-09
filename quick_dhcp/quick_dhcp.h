@@ -5,7 +5,13 @@
 #include <iphlpapi.h>
 #include <stdio.h>
 
+#define DHCP_MAGIC_COOKIE "99.130.83.99"
+
 int udp_test();
+
+typedef struct {
+
+} dhcp_option;
 
 // dhcp payload struct
 typedef struct {
@@ -23,7 +29,9 @@ typedef struct {
         USHORT chaddr_first;
         USHORT chaddr_second;
         USHORT chaddr_third;
+        char pad[200];
         ULONG32 magic;
+        dhcp_option option;
     } dhcp_payload;
 
 // udp header struct

@@ -25,14 +25,16 @@ int main(){
         return 1;
     }
     
-    // Create a RAW socket for server responses
-    // iResult = udp_test();
-    // if(iResult != 0)
-    // {
-    //     printf("Error Sending UDP Response : %d\n", iResult);
-    //     WSACleanup();
-    //     return 1;
-    // }
+    // Create a RAW socket and send offer
+    iResult = udp_test();
+    if(iResult != 0)
+    {
+        printf("Error Sending UDP Response : %d\n", iResult);
+        WSACleanup();
+        return 1;
+    }
+
+    
     
     return 0;
 }
@@ -122,8 +124,7 @@ int get_client_discover()
     ULONG64 midnib = (long long)ntohs(received->chaddr_second);
     ULONG64 highnib = (long long)ntohs(received->chaddr_third);
 
-    ULONG64 mac = 0xFFFFFFFFFFFFFFFF;
-    mac = mac & ((lownib << 32) | (midnib << 16) | highnib);
+    ULONG64 mac = ((lownib << 32) | (midnib << 16) | highnib);
 
     printf("DHCP Packet Contents:\n\n");
     printf("Message Type : %X\n", received->op);
@@ -137,9 +138,6 @@ int get_client_discover()
     printf("Receiver Address : %X\n", ntohl(received->yiaddr));
     printf("Server Address : %X\n", ntohl(received->siaddr));
     printf("Gateway Address : %X\n", ntohl(received->giaddr));
-    printf("Hardware Address lo : %X\n", lownib);
-    printf("Hardware Address mid : %X\n", midnib);
-    printf("Hardware Address hi : %X\n", highnib);
     printf("Hardware Address : %llX\n", mac);
     printf("Magic Cookie : %X\n", received->magic);
     
