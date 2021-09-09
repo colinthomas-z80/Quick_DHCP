@@ -41,27 +41,6 @@ int udp_test(){
 
     char test_sendbuff[512];
 
-    typedef struct {
-        UCHAR op;
-        UCHAR htype;
-        UCHAR hlen;
-        UCHAR hops;
-        ULONG32 xid;
-        USHORT segs;
-        USHORT flags;
-        ULONG32 ciaddr;
-        ULONG32 yiaddr;
-        ULONG32 siaddr;
-    } dhcp_offer;
-
-    typedef struct {
-        USHORT src_port;
-        USHORT dest_port;
-        USHORT len;
-        USHORT checksum;
-        dhcp_offer offer;
-    } udp_packet;
-
     udp_packet *test_pkt = (udp_packet*)test_sendbuff;
     // udp header
     test_pkt->src_port = htons(67);
@@ -69,16 +48,16 @@ int udp_test(){
     test_pkt->len = htons(32);
     test_pkt->checksum = htons(32);
     // dhcp payload
-    test_pkt->offer.op = 0x02;
-    test_pkt->offer.htype = 0x01;
-    test_pkt->offer.hlen = 0x06;
-    test_pkt->offer.hops = 0x00;
-    test_pkt->offer.xid = 0x12345678;
-    test_pkt->offer.segs = 0x0001;
-    test_pkt->offer.flags = 0x0;
-    test_pkt->offer.ciaddr = 0x0;
-    test_pkt->offer.yiaddr = inet_addr("192.168.1.150");
-    test_pkt->offer.siaddr = inet_addr("192.168.1.150");
+    test_pkt->payload.op = 0x02;
+    test_pkt->payload.htype = 0x01;
+    test_pkt->payload.hlen = 0x06;
+    test_pkt->payload.hops = 0x00;
+    test_pkt->payload.xid = 0x12345678;
+    test_pkt->payload.segs = 0x0001;
+    test_pkt->payload.flags = 0x0;
+    test_pkt->payload.ciaddr = 0x0;
+    test_pkt->payload.yiaddr = inet_addr("192.168.1.150");
+    test_pkt->payload.siaddr = inet_addr("192.168.1.150");
 
     err = sendto(raw_s, test_sendbuff, sizeof(test_sendbuff), 0, (SOCKADDR *)&receiver, sizeof(receiver));
     if(err != 0)

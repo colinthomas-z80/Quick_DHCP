@@ -52,10 +52,8 @@ int get_client_discover()
     hints.ai_protocol = IPPROTO_UDP;
     hints.ai_flags = AI_PASSIVE;
 
-    // getaddrinfo(string host addr, string port, hint, return)
-    // when the node name is set to NULL, and the hints.ai_flags is AI_PASSIVE, the 
-    // ip address of the returned structure is set to INADDR_ANY
-    // 
+   
+    // get address profile of our host 
     iResult = getaddrinfo("192.168.1.150", DHCP_PORT, &hints, &result);
     if(iResult != 0)
     {
@@ -64,6 +62,7 @@ int get_client_discover()
         return -1;
     }
 
+    // create socket
     s = INVALID_SOCKET;
     s = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
     if(s == INVALID_SOCKET)
@@ -73,7 +72,7 @@ int get_client_discover()
         WSACleanup();
         return -1;
     }
-    printf("TCP Socket Created\n");
+    printf("UDP Socket Created\n");
 
     // bind the socket to our network interface
     iResult = bind(s, result->ai_addr, (int)result->ai_addrlen);
@@ -110,12 +109,40 @@ int get_client_discover()
     if(iResult > 0)
     {
         printf("Bytes Received : %d\n", iResult);
-        printf("Buf : \n%s\n", buf);
     }else if( iResult < 0) {
         printf("Recv Error : %d\n", iResult);
         return -1;
     }
 
+    // interpret the discover packet
+    // udp header is not in buffer because the socket is already udp type, not raw.
+    dhcp_payload *received = (dhcp_payload*)buf;
+
+    ULONG64 lownib = (long long)ntohs(received->chaddr_first);
+    ULONG64 midnib = (long long)ntohs(received->chaddr_second);
+    ULONG64 highnib = (long long)ntohs(received->chaddr_third);
+
+    ULONG64 mac = 0xFFFFFFFFFFFFFFFF;
+    mac = mac & ((lownib << 32) | (midnib << 16) | highnib);
+
+    printf("DHCP Packet Contents:\n\n");
+    printf("Message Type : %X\n", received->op);
+    printf("Hardware Type : %X\n", received->htype);
+    printf("Address Length : %X\n", received->hlen);
+    printf("Hops : %X\n", received->hops);
+    printf("Transaction ID : %X\n", ntohl(received->xid));
+    printf("Seconds : %X\n", received->segs);
+    printf("Flags : %X\n", received->flags);
+    printf("Sender Address : %X\n", ntohl(received->ciaddr));
+    printf("Receiver Address : %X\n", ntohl(received->yiaddr));
+    printf("Server Address : %X\n", ntohl(received->siaddr));
+    printf("Gateway Address : %X\n", ntohl(received->giaddr));
+    printf("Hardware Address lo : %X\n", lownib);
+    printf("Hardware Address mid : %X\n", midnib);
+    printf("Hardware Address hi : %X\n", highnib);
+    printf("Hardware Address : %llX\n", mac);
+    printf("Magic Cookie : %X\n", received->magic);
+    
     printf("done.\n");
     return 0;
 }
