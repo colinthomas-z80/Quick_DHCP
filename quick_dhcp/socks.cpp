@@ -186,7 +186,7 @@ int client_ack(SOCKET *s_ptr){
     // Create a udp packet
 
     char test_sendbuff[512];
-    ZeroMemory(test_sendbuff, 512);
+    ZeroMemory(test_sendbuff, 512); // need to "allocate" because of the indeterminate length of option
 
     udp_packet *test_pkt = (udp_packet*)test_sendbuff;
     // udp header
@@ -211,8 +211,8 @@ int client_ack(SOCKET *s_ptr){
     test_pkt->payload.chaddr_third = htons(0x1214);
     test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
 
-    // Instead of this pointer hack, I could use a fixed amount of padding each option. Most dhcp 
-    // clients can handle that.
+    // Instead of this pointer hack, I could use a large amount of padding each option, exceeding
+    // any potential size of info
 
     char *option_ptr = test_pkt->payload.option_ptr;
 
