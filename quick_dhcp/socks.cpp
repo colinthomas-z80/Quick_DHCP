@@ -1,5 +1,9 @@
 #include "quick_dhcp.h"
 
+extern char *host_ip;
+extern char *offer_ip;
+
+
 int init_rx_socket(SOCKET *s_ptr)
 {
     int iResult;
@@ -16,7 +20,7 @@ int init_rx_socket(SOCKET *s_ptr)
 
    
     // get address profile of our host 
-    iResult = getaddrinfo("192.168.1.150", DHCP_PORT_RX, &hints, &result);
+    iResult = getaddrinfo(host_ip, DHCP_PORT_RX, &hints, &result);
     if(iResult != 0)
     {
         printf("getaddrinfo failed: %d\n", iResult);
@@ -71,7 +75,7 @@ int init_tx_socket(SOCKET *s_ptr)
     // bind socket to the network interface
     sockaddr_in my_nic;
     my_nic.sin_family = AF_INET;
-    my_nic.sin_addr.s_addr = inet_addr("192.168.1.150");
+    my_nic.sin_addr.s_addr = inet_addr(host_ip);
     my_nic.sin_port = 68;
     int err = bind(*s_ptr, (SOCKADDR*)&my_nic, sizeof(my_nic));
     if(err != 0){
@@ -119,7 +123,7 @@ int send_dhcp_offer(SOCKET *s_ptr){
     test_pkt->payload.segs = 0x0000;
     test_pkt->payload.flags = 0x0;
     test_pkt->payload.ciaddr = 0x0;
-    test_pkt->payload.yiaddr = inet_addr("192.168.1.100");
+    test_pkt->payload.yiaddr = inet_addr(offer_ip);
     test_pkt->payload.siaddr = 0x0;
     test_pkt->payload.giaddr = 0x0;
     test_pkt->payload.chaddr_first = htons(0x0011);
@@ -203,7 +207,7 @@ int client_ack(SOCKET *s_ptr){
     test_pkt->payload.segs = 0x0000;
     test_pkt->payload.flags = 0x0;
     test_pkt->payload.ciaddr = 0x0;
-    test_pkt->payload.yiaddr = inet_addr("192.168.1.100");
+    test_pkt->payload.yiaddr = inet_addr(offer_ip);
     test_pkt->payload.siaddr = 0x0;
     test_pkt->payload.giaddr = 0x0;
     test_pkt->payload.chaddr_first = htons(0x0011);

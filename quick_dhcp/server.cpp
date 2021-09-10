@@ -7,11 +7,25 @@
 
 #include "quick_dhcp.h"
 
+char *host_ip;
+char *offer_ip;
+
 int init_net(SOCKET *rx, SOCKET *tx);
 
-int main(){
+int main(int argc, char **argv){
     int iResult;
     SOCKET rx_socket, tx_socket;
+
+    if(argc == 3)
+    {
+        printf("Host: %s\nOffer: %s\n", argv[1], argv[2]);
+
+        host_ip = argv[1];
+        offer_ip = argv[2];
+    }else{
+        printf("Incorrect Program Arguments\n\nFormat : \nquick_dhcp.exe [NIC_ADDRESS] [OFFER_ADDRESS]\n\n");
+        return 1;
+    }
 
     iResult = init_net(&rx_socket, &tx_socket);
     if(iResult != 0)
