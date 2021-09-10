@@ -27,6 +27,8 @@ int main(int argc, char **argv){
         return 1;
     }
 
+
+    // Run in the thread so it doesn't block the command line
     HANDLE my_thread;
     DWORD  my_thread_id;
     my_thread = CreateThread(
@@ -102,7 +104,7 @@ int init_net(SOCKET *rx, SOCKET *tx)
 {
     WSADATA wsa;
     // Initialize Winsock
-    int iResult = WSAStartup(MAKEWORD(2,2), &wsa);
+    int iResult = WSAStartup(WINSOCK_VERSION, &wsa);
     if(iResult != 0)
     {
         printf("WSAStartup Failed : %d\n", iResult);
