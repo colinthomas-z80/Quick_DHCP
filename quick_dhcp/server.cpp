@@ -31,7 +31,7 @@ int main(int argc, char **argv){
     DWORD  my_thread_id;
     my_thread = CreateThread(
         NULL,
-        1024,
+        0,
         server_thread,
         NULL,
         0,

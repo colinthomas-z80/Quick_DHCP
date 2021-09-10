@@ -345,28 +345,17 @@ int client_request(SOCKET *s_ptr)
     // interpret the discover packet
     // udp header is not in buffer because the socket is already udp type, not raw.
     dhcp_payload *received = (dhcp_payload*)buf;
-
-    ULONG64 lownib = (long long)ntohs(received->chaddr_first);
-    ULONG64 midnib = (long long)ntohs(received->chaddr_second);
-    ULONG64 highnib = (long long)ntohs(received->chaddr_third);
-
-    ULONG64 mac = ((lownib << 32) | (midnib << 16) | highnib);
-
     printf("\n---------------- DHCP REQ Packet Contents ------------------\n");
     printf("Message Type : %X\n", received->op);
     printf("Hardware Type : %X\n", received->htype);
     printf("Address Length : %X\n", received->hlen);
     printf("Hops : %X\n", received->hops);
     printf("Transaction ID : %X\n", ntohl(received->xid));
-    printf("Seconds : %X\n", received->segs);
-    printf("Flags : %X\n", received->flags);
-    printf("Sender Address : %X\n", ntohl(received->ciaddr));
-    printf("Receiver Address : %X\n", ntohl(received->yiaddr));
-    printf("Server Address : %X\n", ntohl(received->siaddr));
-    printf("Gateway Address : %X\n", ntohl(received->giaddr));
-    printf("Hardware Address : %llX\n", mac);
     printf("Magic Cookie : %X\n", received->magic);
     
+    // Need to verify that this packet is a dhcp request, and from the original client
+
+
     printf("done.\n");
     return 0;
 }
