@@ -3,6 +3,10 @@
 extern char *host_ip;
 extern char *offer_ip;
 
+static USHORT client_mac_low;
+static USHORT client_mac_mid;
+static USHORT client_mac_hi;
+static ULONG32 transaction_id;
 
 int init_rx_socket(SOCKET *s_ptr)
 {
@@ -119,16 +123,16 @@ int send_dhcp_offer(SOCKET *s_ptr){
     test_pkt->payload.htype = 0x01;
     test_pkt->payload.hlen = 0x06;
     test_pkt->payload.hops = 0x00;
-    test_pkt->payload.xid = htonl(0x7E15DEF3);
+    test_pkt->payload.xid = htonl(transaction_id);
     test_pkt->payload.segs = 0x0000;
     test_pkt->payload.flags = 0x0;
     test_pkt->payload.ciaddr = 0x0;
     test_pkt->payload.yiaddr = inet_addr(offer_ip);
     test_pkt->payload.siaddr = 0x0;
     test_pkt->payload.giaddr = 0x0;
-    test_pkt->payload.chaddr_first = htons(0x0011);
-    test_pkt->payload.chaddr_second = htons(0x2704);
-    test_pkt->payload.chaddr_third = htons(0x1214);
+    test_pkt->payload.chaddr_first = htons(client_mac_low);
+    test_pkt->payload.chaddr_second = htons(client_mac_mid);
+    test_pkt->payload.chaddr_third = htons(client_mac_hi);
     test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
 
     char *option_ptr = test_pkt->payload.option_ptr;
@@ -203,16 +207,16 @@ int client_ack(SOCKET *s_ptr){
     test_pkt->payload.htype = 0x01;
     test_pkt->payload.hlen = 0x06;
     test_pkt->payload.hops = 0x00;
-    test_pkt->payload.xid = htonl(0x7E15DEF3);
+    test_pkt->payload.xid = htonl(transaction_id);
     test_pkt->payload.segs = 0x0000;
     test_pkt->payload.flags = 0x0;
     test_pkt->payload.ciaddr = 0x0;
     test_pkt->payload.yiaddr = inet_addr(offer_ip);
     test_pkt->payload.siaddr = 0x0;
     test_pkt->payload.giaddr = 0x0;
-    test_pkt->payload.chaddr_first = htons(0x0011);
-    test_pkt->payload.chaddr_second = htons(0x2704);
-    test_pkt->payload.chaddr_third = htons(0x1214);
+    test_pkt->payload.chaddr_first = htons(client_mac_low);
+    test_pkt->payload.chaddr_second = htons(client_mac_mid);
+    test_pkt->payload.chaddr_third = htons(client_mac_hi);
     test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
 
     // Instead of this pointer hack, I could use a large amount of padding each option, exceeding
@@ -294,25 +298,18 @@ int discover_client(SOCKET *s_ptr)
     // udp header is not in buffer because the socket is already udp type, not raw.
     dhcp_payload *received = (dhcp_payload*)buf;
 
-    ULONG64 lownib = (long long)ntohs(received->chaddr_first);
-    ULONG64 midnib = (long long)ntohs(received->chaddr_second);
-    ULONG64 highnib = (long long)ntohs(received->chaddr_third);
+    client_mac_low = ntohs(received->chaddr_first);
+    client_mac_mid = ntohs(received->chaddr_second);
+    client_mac_hi = ntohs(received->chaddr_third);
 
-    ULONG64 mac = ((lownib << 32) | (midnib << 16) | highnib);
+    transaction_id = ntohl(received->xid);
 
-    printf("DHCP Packet Contents:\n\n");
+    printf("\n---------------- DHCP Discover Packet Contents ------------------\n");
     printf("Message Type : %X\n", received->op);
     printf("Hardware Type : %X\n", received->htype);
     printf("Address Length : %X\n", received->hlen);
     printf("Hops : %X\n", received->hops);
     printf("Transaction ID : %X\n", ntohl(received->xid));
-    printf("Seconds : %X\n", received->segs);
-    printf("Flags : %X\n", received->flags);
-    printf("Sender Address : %X\n", ntohl(received->ciaddr));
-    printf("Receiver Address : %X\n", ntohl(received->yiaddr));
-    printf("Server Address : %X\n", ntohl(received->siaddr));
-    printf("Gateway Address : %X\n", ntohl(received->giaddr));
-    printf("Hardware Address : %llX\n", mac);
     printf("Magic Cookie : %X\n", received->magic);
     
     printf("done.\n");
@@ -330,7 +327,7 @@ int client_request(SOCKET *s_ptr)
     client.sin_addr.s_addr = inet_addr("255.255.255.255");
     
     // Listen on socket
-    printf("Waiting for DHCP Discovery.....\n");
+    printf("Waiting for DHCP Request.....\n");
     
     char buf[512];
     int clsize = sizeof(client);
@@ -353,7 +350,7 @@ int client_request(SOCKET *s_ptr)
 
     ULONG64 mac = ((lownib << 32) | (midnib << 16) | highnib);
 
-    printf("DHCP Packet Contents:\n\n");
+    printf("\n---------------- DHCP REQ Packet Contents ------------------\n");
     printf("Message Type : %X\n", received->op);
     printf("Hardware Type : %X\n", received->htype);
     printf("Address Length : %X\n", received->hlen);

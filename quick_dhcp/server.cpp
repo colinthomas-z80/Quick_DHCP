@@ -2,6 +2,7 @@
  *  Quick DHCP server for a single client.
  * 
  *  Assigns a single ip address
+ *  format *.exe [NIC_ADDDRESS] [OFFER_ADDRESS]
  * 
  **************************************/
 
