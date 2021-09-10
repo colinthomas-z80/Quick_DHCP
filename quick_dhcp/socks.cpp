@@ -62,6 +62,7 @@ int init_rx_socket(SOCKET *s_ptr)
         printf("Error setting sockopt for receive : %d\n", iResult);
         return -1;
     }
+
     printf("RX Socket Created\n");
     return 0;
 }
@@ -95,6 +96,7 @@ int init_tx_socket(SOCKET *s_ptr)
         printf("error setting sockopt : %d\n", err);
         return -1;
     }
+
     printf("TX Socket Created\n");
     return 0;
 }

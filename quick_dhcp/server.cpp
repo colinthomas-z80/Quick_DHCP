@@ -12,10 +12,9 @@ char *host_ip;
 char *offer_ip;
 
 int init_net(SOCKET *rx, SOCKET *tx);
+DWORD WINAPI server_thread(LPVOID);
 
 int main(int argc, char **argv){
-    int iResult;
-    SOCKET rx_socket, tx_socket;
 
     if(argc == 3)
     {
@@ -27,6 +26,27 @@ int main(int argc, char **argv){
         printf("Incorrect Program Arguments\n\nFormat : \nquick_dhcp.exe [NIC_ADDRESS] [OFFER_ADDRESS]\n\n");
         return 1;
     }
+
+    HANDLE my_thread;
+    DWORD  my_thread_id;
+    my_thread = CreateThread(
+        NULL,
+        1024,
+        server_thread,
+        NULL,
+        0,
+        &my_thread_id
+    );
+
+    while(1);
+    return 0;
+}
+
+DWORD WINAPI server_thread(LPVOID x)
+{
+    int iResult;
+    SOCKET rx_socket, tx_socket;
+
 
     iResult = init_net(&rx_socket, &tx_socket);
     if(iResult != 0)
