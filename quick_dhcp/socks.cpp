@@ -69,7 +69,7 @@ int init_rx_socket(SOCKET *s_ptr)
 
 int init_tx_socket(SOCKET *s_ptr)
 {
-    *s_ptr = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+    *s_ptr = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if(*s_ptr == INVALID_SOCKET)
     {
         printf("Error creating raw socker : %d\n", WSAGetLastError());
@@ -81,10 +81,10 @@ int init_tx_socket(SOCKET *s_ptr)
     sockaddr_in my_nic;
     my_nic.sin_family = AF_INET;
     my_nic.sin_addr.s_addr = inet_addr(host_ip);
-    my_nic.sin_port = 68;
+    my_nic.sin_port = 67;
     int err = bind(*s_ptr, (SOCKADDR*)&my_nic, sizeof(my_nic));
     if(err != 0){
-        printf("Error binding raw socker %d\n", err);
+        printf("Error binding tx socket %d\n", err);
         return -1;
     }
     //printf("Raw socket bound\n");
@@ -93,7 +93,7 @@ int init_tx_socket(SOCKET *s_ptr)
     err = setsockopt(*s_ptr, SOL_SOCKET, SO_BROADCAST, (char*)&optval, sizeof(BOOL)); // allow socket to send broadcasts
     if(err != 0)
     {
-        printf("error setting sockopt : %d\n", err);
+        printf("error setting sockopt tx: %d\n", err);
         return -1;
     }
 
@@ -114,30 +114,24 @@ int send_dhcp_offer(SOCKET *s_ptr){
     char test_sendbuff[512];
     ZeroMemory(test_sendbuff, 512);
 
-    udp_packet *test_pkt = (udp_packet*)test_sendbuff;
-    // udp header
-    test_pkt->src_port = htons(67);
-    test_pkt->dest_port = htons(68);
-    test_pkt->len = htons(360);
-    test_pkt->checksum = htons(271);
-    // dhcp payload
-    test_pkt->payload.op = 0x02;
-    test_pkt->payload.htype = 0x01;
-    test_pkt->payload.hlen = 0x06;
-    test_pkt->payload.hops = 0x00;
-    test_pkt->payload.xid = htonl(transaction_id);
-    test_pkt->payload.segs = 0x0000;
-    test_pkt->payload.flags = 0x0;
-    test_pkt->payload.ciaddr = 0x0;
-    test_pkt->payload.yiaddr = inet_addr(offer_ip);
-    test_pkt->payload.siaddr = 0x0;
-    test_pkt->payload.giaddr = 0x0;
-    test_pkt->payload.chaddr_first = htons(client_mac_low);
-    test_pkt->payload.chaddr_second = htons(client_mac_mid);
-    test_pkt->payload.chaddr_third = htons(client_mac_hi);
-    test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
-
-    char *option_ptr = test_pkt->payload.option_ptr;
+    dhcp_payload *test_pkt = (dhcp_payload*)test_sendbuff;
+    test_pkt->op = 0x02;
+    test_pkt->htype = 0x01;
+    test_pkt->hlen = 0x06;
+    test_pkt->hops = 0x00;
+    test_pkt->xid = htonl(transaction_id);
+    test_pkt->segs = 0x0000;
+    test_pkt->flags = 0x0;
+    test_pkt->ciaddr = 0x0;
+    test_pkt->yiaddr = inet_addr(offer_ip);
+    test_pkt->siaddr = 0x0;
+    test_pkt->giaddr = 0x0;
+    test_pkt->chaddr_first = htons(client_mac_low);
+    test_pkt->chaddr_second = htons(client_mac_mid);
+    test_pkt->chaddr_third = htons(client_mac_hi);
+    test_pkt->magic = inet_addr(DHCP_MAGIC_COOKIE);
+    
+    char *option_ptr = test_pkt->option_ptr;
 
     *option_ptr++ = 53; // dhcp offer
     *option_ptr++ = 1;
@@ -198,33 +192,27 @@ int client_ack(SOCKET *s_ptr){
     char test_sendbuff[512];
     ZeroMemory(test_sendbuff, 512); // need to "allocate" because of the indeterminate length of option
 
-    udp_packet *test_pkt = (udp_packet*)test_sendbuff;
-    // udp header
-    test_pkt->src_port = htons(67);
-    test_pkt->dest_port = htons(68);
-    test_pkt->len = htons(360);
-    test_pkt->checksum = htons(271);
-    // dhcp payload
-    test_pkt->payload.op = 0x02;
-    test_pkt->payload.htype = 0x01;
-    test_pkt->payload.hlen = 0x06;
-    test_pkt->payload.hops = 0x00;
-    test_pkt->payload.xid = htonl(transaction_id);
-    test_pkt->payload.segs = 0x0000;
-    test_pkt->payload.flags = 0x0;
-    test_pkt->payload.ciaddr = 0x0;
-    test_pkt->payload.yiaddr = inet_addr(offer_ip);
-    test_pkt->payload.siaddr = 0x0;
-    test_pkt->payload.giaddr = 0x0;
-    test_pkt->payload.chaddr_first = htons(client_mac_low);
-    test_pkt->payload.chaddr_second = htons(client_mac_mid);
-    test_pkt->payload.chaddr_third = htons(client_mac_hi);
-    test_pkt->payload.magic = inet_addr(DHCP_MAGIC_COOKIE);
+    dhcp_payload *test_pkt = (dhcp_payload*)test_sendbuff;
+    test_pkt->op = 0x02;
+    test_pkt->htype = 0x01;
+    test_pkt->hlen = 0x06;
+    test_pkt->hops = 0x00;
+    test_pkt->xid = htonl(transaction_id);
+    test_pkt->segs = 0x0000;
+    test_pkt->flags = 0x0;
+    test_pkt->ciaddr = 0x0;
+    test_pkt->yiaddr = inet_addr(offer_ip);
+    test_pkt->siaddr = 0x0;
+    test_pkt->giaddr = 0x0;
+    test_pkt->chaddr_first = htons(client_mac_low);
+    test_pkt->chaddr_second = htons(client_mac_mid);
+    test_pkt->chaddr_third = htons(client_mac_hi);
+    test_pkt->magic = inet_addr(DHCP_MAGIC_COOKIE);
 
     // Instead of this pointer hack, I could use a large amount of padding each option, exceeding
     // any potential size of info
 
-    char *option_ptr = test_pkt->payload.option_ptr;
+    char *option_ptr = test_pkt->option_ptr;
 
     *option_ptr++ = 53; // dhcp ack
     *option_ptr++ = 1;
