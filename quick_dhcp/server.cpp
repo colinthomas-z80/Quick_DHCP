@@ -41,7 +41,7 @@ int main(int argc, char **argv){
         &my_thread_id
     );
 
-    while(!finished);
+    WaitForSingleObject(my_thread, INFINITE);
     return 0;
 }
 
@@ -96,13 +96,6 @@ DWORD WINAPI server_thread(LPVOID x)
             return 1;
         }
         printf("DHCP Success!\n\n");
-        
-        closesocket(rx_socket);
-        closesocket(tx_socket);
-
-        WSACleanup();
-
-        finished = true;
     }
     return 0;
 }
