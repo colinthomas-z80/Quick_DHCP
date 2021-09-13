@@ -331,8 +331,12 @@ int client_request(SOCKET *s_ptr)
     }
 
     // interpret the discover packet
-    // udp header is not in buffer because the socket is already udp type, not raw.
     dhcp_payload *received = (dhcp_payload*)buf;
+
+    USHORT mac_low = ntohs(received->chaddr_first);
+    USHORT mac_mid = ntohs(received->chaddr_second);
+    USHORT mac_hi = ntohs(received->chaddr_third);
+
     printf("\n---------------- DHCP REQ Packet Contents ------------------\n");
     printf("Message Type : %X\n", received->op);
     printf("Hardware Type : %X\n", received->htype);
@@ -342,7 +346,17 @@ int client_request(SOCKET *s_ptr)
     printf("Magic Cookie : %X\n", received->magic);
     
     // Need to verify that this packet is a dhcp request, and from the original client
+    if(mac_hi & client_mac_hi != mac_hi)
+    {
+        printf("Broadcast Received From another Client. Still Waiting.\n");
+        client_request(s_ptr);
+    }
 
+    if(received->option_ptr[OFFSET_DHCP_MSG_TYPE] != DHCP_MSG_TYPE_REQUEST) 
+    {
+        printf("Message from client was not dhcp request!\n");
+        client_request(s_ptr);
+    }
 
     printf("done.\n");
     return 0;

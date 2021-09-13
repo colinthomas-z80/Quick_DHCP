@@ -11,6 +11,8 @@
 char *host_ip;
 char *offer_ip;
 
+bool finished = false;
+
 int init_net(SOCKET *rx, SOCKET *tx);
 DWORD WINAPI server_thread(LPVOID);
 
@@ -27,8 +29,7 @@ int main(int argc, char **argv){
         return 1;
     }
 
-
-    // Run in the thread so it doesn't block the command line
+    // Create a thread for the blocking server operations
     HANDLE my_thread;
     DWORD  my_thread_id;
     my_thread = CreateThread(
@@ -40,7 +41,7 @@ int main(int argc, char **argv){
         &my_thread_id
     );
 
-    while(1);
+    while(!finished);
     return 0;
 }
 
@@ -48,7 +49,6 @@ DWORD WINAPI server_thread(LPVOID x)
 {
     int iResult;
     SOCKET rx_socket, tx_socket;
-
 
     iResult = init_net(&rx_socket, &tx_socket);
     if(iResult != 0)
@@ -96,6 +96,13 @@ DWORD WINAPI server_thread(LPVOID x)
             return 1;
         }
         printf("DHCP Success!\n\n");
+        
+        closesocket(rx_socket);
+        closesocket(tx_socket);
+
+        WSACleanup();
+
+        finished = true;
     }
     return 0;
 }

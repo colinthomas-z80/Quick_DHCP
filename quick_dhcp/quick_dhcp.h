@@ -7,6 +7,8 @@
 
 #define DHCP_MAGIC_COOKIE "99.130.83.99"
 #define DHCP_PORT_RX "67"
+#define OFFSET_DHCP_MSG_TYPE 2
+#define DHCP_MSG_TYPE_REQUEST 3
 
 int send_dhcp_offer(SOCKET *s_ptr);
 int init_tx_socket(SOCKET *s_ptr);
