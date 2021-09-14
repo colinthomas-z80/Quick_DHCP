@@ -79,12 +79,12 @@ DWORD WINAPI server_thread(LPVOID x)
         }   
 
         // Wait for client dhcp request
-        iResult = client_request(&rx_socket);
-        if(iResult != 0)
+        while((iResult = client_request(&rx_socket)) > 0);
+        if(iResult < 0)
         {
             printf("Error getting client request : %d\n", iResult);
             WSACleanup();
-            return 1;
+            return 1; 
         }
 
         // Respond to client with ack

@@ -9,7 +9,7 @@ window.configure(background="lightblue")
 button_start = tk.Button(window, text="Start", command=lambda:start_button_action())
 box_host_ip = tk.Text(window, height=1, width=15)
 box_target_ip = tk.Text(window,height=1, width=15)
-label_box_host_ip = tk.Label(window, text="Host/Inteface IP", background="lightblue")
+label_box_host_ip = tk.Label(window, text="Host/Interface IP", background="lightblue")
 label_box_target_ip = tk.Label(window, text="Target IP", background="lightblue")
 
 def verify_ip_v4(ip):

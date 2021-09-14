@@ -3,10 +3,10 @@
 extern char *host_ip;
 extern char *offer_ip;
 
-static USHORT client_mac_low;
-static USHORT client_mac_mid;
-static USHORT client_mac_hi;
-static ULONG32 transaction_id;
+USHORT client_mac_low;
+USHORT client_mac_mid;
+USHORT client_mac_hi;
+ULONG32 transaction_id;
 
 int init_rx_socket(SOCKET *s_ptr)
 {
@@ -175,6 +175,8 @@ int send_dhcp_offer(SOCKET *s_ptr){
     if(err != 0)
     {
         printf("UDP Bytes Sent : %d\n", err);
+    }else{
+        printf("UDP Send Error : %d\n", err);
     }
     return 0;
 }
@@ -288,6 +290,15 @@ int discover_client(SOCKET *s_ptr)
     // udp header is not in buffer because the socket is already udp type, not raw.
     dhcp_payload *received = (dhcp_payload*)buf;
 
+    // recurse until a discover packet is caught.
+    if(received->option_ptr[OFFSET_DHCP_MSG_TYPE] != DHCP_MSG_TYPE_DISCOVER) 
+    {
+        printf("Message from client was not dhcp discover! : %d\n", received->option_ptr[OFFSET_DHCP_MSG_TYPE]);
+        discover_client(s_ptr);
+    }
+    else
+    {
+
     client_mac_low = ntohs(received->chaddr_first);
     client_mac_mid = ntohs(received->chaddr_second);
     client_mac_hi = ntohs(received->chaddr_third);
@@ -301,8 +312,10 @@ int discover_client(SOCKET *s_ptr)
     printf("Hops : %X\n", received->hops);
     printf("Transaction ID : %X\n", ntohl(received->xid));
     printf("Magic Cookie : %X\n", received->magic);
-    
+    printf("Mac Last Nib : %X\n", client_mac_hi);
+    printf("DHCP Message Type : %d\n", received->option_ptr[OFFSET_DHCP_MSG_TYPE]);
     printf("done.\n");
+    }
     return 0;
 }
 
@@ -344,18 +357,14 @@ int client_request(SOCKET *s_ptr)
     printf("Hops : %X\n", received->hops);
     printf("Transaction ID : %X\n", ntohl(received->xid));
     printf("Magic Cookie : %X\n", received->magic);
-    
-    // Need to verify that this packet is a dhcp request, and from the original client
-    if(mac_hi & client_mac_hi != mac_hi)
-    {
-        printf("Broadcast Received From another Client. Still Waiting.\n");
-        client_request(s_ptr);
-    }
+    printf("Mac Last Nib : %X\n", mac_hi);
+    printf("DHCP Message Type : %d\n", received->option_ptr[OFFSET_DHCP_MSG_TYPE]);
 
-    if(received->option_ptr[OFFSET_DHCP_MSG_TYPE] != DHCP_MSG_TYPE_REQUEST) 
+    // Need to verify that this packet is a dhcp request, and from the original client
+    if(mac_hi & client_mac_hi != mac_hi || received->option_ptr[OFFSET_DHCP_MSG_TYPE] != DHCP_MSG_TYPE_REQUEST)
     {
-        printf("Message from client was not dhcp request!\n");
-        client_request(s_ptr);
+        printf("Packet Received was not request or not from discover client.\n");
+        return 1;
     }
 
     printf("done.\n");
